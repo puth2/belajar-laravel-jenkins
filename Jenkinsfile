@@ -2,25 +2,22 @@ pipeline {
     agent any
 
     stages {
-        stage('1. Persiapan Lingkungan') {
-            steps {
-                echo 'Meminjam Docker PHP untuk memasak...'
-            }
-        }
-
-        stage('2. Build & Test') {
+        stage('1. Build & Test') {
             agent {
                 docker {
-                    image 'php:8.2-cli' // Jenkins otomatis pinjam PHP 8.2
+                    image 'php:8.2-cli'
                     args '-u root'
                 }
             }
             steps {
-                echo 'Mengecek alat tempur...'
-                sh 'php -v'
-                
+                echo 'Menginstall alat pendukung (Zip & Git)...'
+                // Kita tambahkan baris sakti ini biar dockernya pinter
+                sh '''
+                    apt-get update && apt-get install -y unzip git libzip-dev
+                    docker-php-ext-install zip
+                '''
+
                 echo 'Mengambil Composer...'
-                // Perintah ini buat download composer di dalam docker tadi
                 sh 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
                 
                 echo 'Install library Laravel...'
@@ -38,10 +35,10 @@ pipeline {
     
     post {
         success {
-            echo 'ALHAMDULILLAH! Berhasil Hijau, Sayang! 🎉'
+            echo 'AKHIRNYA HIJAU! Selamat ya ayang! 🎉🌹'
         }
         failure {
-            echo 'Masih ada yang kurang, cek log di atas ya! ❌'
+            echo 'Dikit lagi, cek bagian mana yang merah... ❌'
         }
     }
 }
