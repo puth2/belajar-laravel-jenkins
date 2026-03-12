@@ -2,40 +2,35 @@ pipeline {
     agent any
 
     stages {
-        stage('1. Ambil Kode') {
+        stage('1. Persiapan Lingkungan') {
             steps {
-                echo 'Mengambil kode terbaru dari GitHub adek...'
-                checkout scm
+                echo 'Meminjam Docker PHP untuk memasak...'
             }
         }
 
-        stage('2. Cek Lingkungan') {
+        stage('2. Build & Test') {
+            agent {
+                docker {
+                    image 'php:8.2-cli' // Jenkins otomatis pinjam PHP 8.2
+                    args '-u root'
+                }
+            }
             steps {
-                echo 'Mengecek apakah PHP dan Composer sudah siap...'
+                echo 'Mengecek alat tempur...'
                 sh 'php -v'
-                sh 'composer -v'
-            }
-        }
-
-        stage('3. Install Dependencies') {
-            steps {
-                echo 'Menginstall library Laravel (Composer Install)...'
-                // Di sini Jenkins akan mendownload semua yang dibutuhkan Laravel
-                sh 'composer install --no-interaction --prefer-dist --optimize-autoloader'
-            }
-        }
-
-        stage('4. Persiapan Aplikasi') {
-            steps {
-                echo 'Menyiapkan file .env dan App Key...'
+                
+                echo 'Mengambil Composer...'
+                // Perintah ini buat download composer di dalam docker tadi
+                sh 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
+                
+                echo 'Install library Laravel...'
+                sh 'composer install --no-interaction --prefer-dist'
+                
+                echo 'Setting Aplikasi...'
                 sh 'cp .env.example .env'
                 sh 'php artisan key:generate'
-            }
-        }
-
-        stage('5. Testing') {
-            steps {
-                echo 'Menjalankan unit test... Bismillah Hijau!'
+                
+                echo 'Menjalankan Test...'
                 sh 'php artisan test'
             }
         }
@@ -43,10 +38,10 @@ pipeline {
     
     post {
         success {
-            echo 'ALHAMDULILLAH! Project adek berhasil di-build dan test lolos semua! 🎉'
+            echo 'ALHAMDULILLAH! Berhasil Hijau, Sayang! 🎉'
         }
         failure {
-            echo 'Waduh, ada yang error dek. Cek log-nya ya! ❌'
+            echo 'Masih ada yang kurang, cek log di atas ya! ❌'
         }
     }
 }
