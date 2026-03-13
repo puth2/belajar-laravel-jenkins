@@ -5,7 +5,7 @@ pipeline {
         stage('1. Build & Test') {
             agent {
                 docker {
-                    image 'php:8.2-cli'
+                    image 'php:8.4-cli'
                     args '-u root'
                 }
             }
